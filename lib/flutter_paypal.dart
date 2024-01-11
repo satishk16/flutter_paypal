@@ -18,7 +18,7 @@ class UsePaypal extends StatefulWidget {
   final String returnURL, cancelURL, note, clientId, secretKey;
   final List transactions;
   final bool sandboxMode;
-  final List<Map<String, dynamic>>? orderLinks;
+  final List? orderLinks;
   const UsePaypal({
     Key? key,
     required this.onSuccess,
@@ -118,11 +118,10 @@ class UsePaypalState extends State<UsePaypal> {
   void initState() {
     super.initState();
     services = PaypalServices(
-      sandboxMode: widget.sandboxMode,
-      clientId: widget.clientId,
-      secretKey: widget.secretKey,
-      orderLinks: widget.orderLinks
-    );
+        sandboxMode: widget.sandboxMode,
+        clientId: widget.clientId,
+        secretKey: widget.secretKey,
+        orderLinks: widget.orderLinks);
     setState(() {
       navUrl = widget.sandboxMode
           ? 'https://api.sandbox.paypal.com'
