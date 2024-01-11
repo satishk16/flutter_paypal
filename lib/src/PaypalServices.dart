@@ -48,7 +48,7 @@ class PaypalServices {
   orderApprovalLinks() {
     var approvalUrl = '', executeUrl = '';
     final item =
-        orderLinks!.firstWhere((o) => o["rel"] == "approval", orElse: () => {});
+        orderLinks!.firstWhere((o) => o["rel"] == "approve", orElse: () => {});
     if (item.isNotEmpty) {
       approvalUrl = item["href"];
     }
