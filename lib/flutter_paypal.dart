@@ -18,6 +18,7 @@ class UsePaypal extends StatefulWidget {
   final String returnURL, cancelURL, note, clientId, secretKey;
   final List transactions;
   final bool sandboxMode;
+  final List<Map<String, dynamic>>? orderLinks;
   const UsePaypal({
     Key? key,
     required this.onSuccess,
@@ -30,6 +31,7 @@ class UsePaypal extends StatefulWidget {
     required this.secretKey,
     this.sandboxMode = false,
     this.note = '',
+    this.orderLinks,
   }) : super(key: key);
 
   @override
@@ -84,7 +86,7 @@ class UsePaypalState extends State<UsePaypal> {
             pageLoading = false;
             loadingError = false;
           });
-        _controller.loadRequest(Uri.parse(checkoutUrl));
+          _controller.loadRequest(Uri.parse(checkoutUrl));
         } else {
           widget.onError(res);
           setState(() {
@@ -119,6 +121,7 @@ class UsePaypalState extends State<UsePaypal> {
       sandboxMode: widget.sandboxMode,
       clientId: widget.clientId,
       secretKey: widget.secretKey,
+      orderLinks: widget.orderLinks
     );
     setState(() {
       navUrl = widget.sandboxMode

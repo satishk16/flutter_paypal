@@ -8,11 +8,13 @@ import 'package:http_auth/http_auth.dart';
 class PaypalServices {
   final String clientId, secretKey;
   final bool sandboxMode;
-  PaypalServices({
-    required this.clientId,
-    required this.secretKey,
-    required this.sandboxMode,
-  });
+  final List<Map<String, dynamic>>? orderLinks;
+
+  PaypalServices(
+      {required this.clientId,
+      required this.secretKey,
+      required this.sandboxMode,
+      this.orderLinks});
 
   getAccessToken() async {
     String domain = sandboxMode
@@ -43,40 +45,60 @@ class PaypalServices {
     }
   }
 
+  orderApprovalLinks() {
+    var approvalUrl = '', executeUrl = '';
+    final item =
+        orderLinks!.firstWhere((o) => o["rel"] == "approval", orElse: () => {});
+    if (item.isNotEmpty) {
+      approvalUrl = item["href"];
+    }
+    final item1 =
+        orderLinks!.firstWhere((o) => o["rel"] == "capture", orElse: () => {});
+    if (item1.isNotEmpty) {
+      executeUrl = item1["href"];
+    }
+
+    return {"executeUrl": executeUrl, "approvalUrl": approvalUrl};
+  }
+
   Future<Map> createPaypalPayment(transactions, accessToken) async {
     String domain = sandboxMode
         ? "https://api.sandbox.paypal.com"
         : "https://api.paypal.com";
     try {
-      var response = await http.post(Uri.parse("$domain/v1/payments/payment"),
-          body: convert.jsonEncode(transactions),
-          headers: {
-            "content-type": "application/json",
-            'Authorization': 'Bearer ' + accessToken
-          });
-
-      final body = convert.jsonDecode(response.body);
-      if (response.statusCode == 201) {
-        if (body["links"] != null && body["links"].length > 0) {
-          List links = body["links"];
-
-          String executeUrl = "";
-          String approvalUrl = "";
-          final item = links.firstWhere((o) => o["rel"] == "approval_url",
-              orElse: () => null);
-          if (item != null) {
-            approvalUrl = item["href"];
-          }
-          final item1 = links.firstWhere((o) => o["rel"] == "execute",
-              orElse: () => null);
-          if (item1 != null) {
-            executeUrl = item1["href"];
-          }
-          return {"executeUrl": executeUrl, "approvalUrl": approvalUrl};
-        }
-        return {};
+      if (orderLinks != null && orderLinks!.isNotEmpty) {
+        return Future(() => orderApprovalLinks());
       } else {
-        return body;
+        var response = await http.post(Uri.parse("$domain/v1/payments/payment"),
+            body: convert.jsonEncode(transactions),
+            headers: {
+              "content-type": "application/json",
+              'Authorization': 'Bearer ' + accessToken
+            });
+
+        final body = convert.jsonDecode(response.body);
+        if (response.statusCode == 201) {
+          if (body["links"] != null && body["links"].length > 0) {
+            List links = body["links"];
+
+            String executeUrl = "";
+            String approvalUrl = "";
+            final item = links.firstWhere((o) => o["rel"] == "approval_url",
+                orElse: () => null);
+            if (item != null) {
+              approvalUrl = item["href"];
+            }
+            final item1 = links.firstWhere((o) => o["rel"] == "execute",
+                orElse: () => null);
+            if (item1 != null) {
+              executeUrl = item1["href"];
+            }
+            return {"executeUrl": executeUrl, "approvalUrl": approvalUrl};
+          }
+          return {};
+        } else {
+          return body;
+        }
       }
     } catch (e) {
       rethrow;
