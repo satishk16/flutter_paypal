@@ -18,7 +18,7 @@ class UsePaypal extends StatefulWidget {
   final String returnURL, cancelURL, note, clientId, secretKey;
   final List transactions;
   final bool sandboxMode;
-  final List? orderLinks;
+  final Map<String, dynamic>? orderData;
   const UsePaypal({
     Key? key,
     required this.onSuccess,
@@ -31,7 +31,7 @@ class UsePaypal extends StatefulWidget {
     required this.secretKey,
     this.sandboxMode = false,
     this.note = '',
-    this.orderLinks,
+    this.orderData,
   }) : super(key: key);
 
   @override
@@ -121,7 +121,7 @@ class UsePaypalState extends State<UsePaypal> {
         sandboxMode: widget.sandboxMode,
         clientId: widget.clientId,
         secretKey: widget.secretKey,
-        orderLinks: widget.orderLinks);
+        orderData: widget.orderData);
     setState(() {
       navUrl = widget.sandboxMode
           ? 'https://api.sandbox.paypal.com'
@@ -181,11 +181,19 @@ class UsePaypalState extends State<UsePaypal> {
               return NavigationDecision.prevent;
             }
             if (request.url.contains(widget.returnURL)) {
+              final trans = widget.transactions.firstOrNull;
+              String amount, currency;
+
+              amount = trans["amount"]["total"] ?? '';
+              currency = trans["amount"]["currency"] ?? '';
+
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
                     builder: (context) => CompletePayment(
                         url: request.url,
+                        amount: amount, toCapture: widget.orderData != null,
+                        currency: currency,
                         services: services,
                         executeUrl: executeUrl,
                         accessToken: accessToken,

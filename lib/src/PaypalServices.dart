@@ -8,13 +8,13 @@ import 'package:http_auth/http_auth.dart';
 class PaypalServices {
   final String clientId, secretKey;
   final bool sandboxMode;
-  final List? orderLinks;
+  final Map<String, dynamic>? orderData;
 
   PaypalServices(
       {required this.clientId,
       required this.secretKey,
       required this.sandboxMode,
-      this.orderLinks});
+      this.orderData});
 
   getAccessToken() async {
     String domain = sandboxMode
@@ -46,6 +46,7 @@ class PaypalServices {
   }
 
   orderApprovalLinks() {
+    final orderLinks = orderData?["links"];
     var approvalUrl = '', executeUrl = '';
     final item =
         orderLinks!.firstWhere((o) => o["rel"] == "approve", orElse: () => {});
@@ -66,7 +67,7 @@ class PaypalServices {
         ? "https://api.sandbox.paypal.com"
         : "https://api.paypal.com";
     try {
-      if (orderLinks != null && orderLinks!.isNotEmpty) {
+      if (orderData != null && orderData!.isNotEmpty) {
         return Future(() => orderApprovalLinks());
       } else {
         var response = await http.post(Uri.parse("$domain/v1/payments/payment"),
@@ -102,6 +103,66 @@ class PaypalServices {
       }
     } catch (e) {
       rethrow;
+    }
+  }
+
+  Future<Map> orderDetails(accessToken) async {
+    try {
+      String domain = sandboxMode
+          ? "https://api.sandbox.paypal.com"
+          : "https://api.paypal.com";
+      String url = "$domain/v2/checkout/orders/${orderData?["id"]}";
+      var response = await http.get(Uri.parse(url), headers: {
+        "content-type": "application/json",
+        'Authorization': 'Bearer $accessToken'
+      });
+
+      final body = convert.jsonDecode(response.body);
+      if (response.statusCode == 200) {
+        return {'error': false, 'message': "Success", 'data': body};
+      } else {
+        return {
+          'error': true,
+          'message': "Payment inconclusive.",
+          'data': body
+        };
+      }
+    } catch (e) {
+      return {'error': true, 'message': e, 'exception': true, 'data': null};
+    }
+  }
+
+  Future<Map> capturePayment(accessToken, amount, currency) async {
+    try {
+      String domain = sandboxMode
+          ? "https://api.sandbox.paypal.com"
+          : "https://api.paypal.com";
+      String url = "$domain/v2/checkout/orders/${orderData?["id"]}/capture";
+      var response = await http.post(Uri.parse(url),
+          body: convert.jsonEncode({
+            "amount": {"value": "$amount", "currency_code": "$currency"},
+            "invoice_id": "INVOICE-${orderData?['id']}",
+            "final_capture": true,
+            "note_to_payer": "",
+            "soft_descriptor": ""
+          }),
+          headers: {
+            "content-type": "application/json",
+            'Authorization': 'Bearer $accessToken'
+          });
+
+      final body = convert.jsonDecode(response.body);
+      if (response.statusCode == 200) {
+        return {'error': false, 'message': "Success", 'data': body};
+      } else {
+        return {
+          'error': true,
+          'message': "Payment inconclusive.",
+          'data': body
+        };
+      }
+    } catch (e) {
+      return {'error': true, 'message': e, 'exception': true, 'data': null};
     }
   }
 
