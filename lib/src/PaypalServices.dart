@@ -8,7 +8,7 @@ import 'package:http_auth/http_auth.dart';
 class PaypalServices {
   final String clientId, secretKey;
   final bool sandboxMode;
-  final Map<String, dynamic>? orderData;
+  final Map? orderData;
 
   PaypalServices(
       {required this.clientId,

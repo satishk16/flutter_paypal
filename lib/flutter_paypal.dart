@@ -18,7 +18,7 @@ class UsePaypal extends StatefulWidget {
   final String returnURL, cancelURL, note, clientId, secretKey;
   final List transactions;
   final bool sandboxMode;
-  final Map<String, dynamic>? orderData;
+  final Map? orderData;
   const UsePaypal({
     Key? key,
     required this.onSuccess,
@@ -192,7 +192,8 @@ class UsePaypalState extends State<UsePaypal> {
                 MaterialPageRoute(
                     builder: (context) => CompletePayment(
                         url: request.url,
-                        amount: amount, toCapture: widget.orderData != null,
+                        amount: amount,
+                        toCapture: widget.orderData != null,
                         currency: currency,
                         services: services,
                         executeUrl: executeUrl,
