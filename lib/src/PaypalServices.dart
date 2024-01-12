@@ -8,7 +8,7 @@ import 'package:http_auth/http_auth.dart';
 class PaypalServices {
   final String clientId, secretKey;
   final bool sandboxMode;
-  final Map<String, dynamic>? orderData;
+  final Map? orderData;
 
   PaypalServices(
       {required this.clientId,
@@ -46,8 +46,17 @@ class PaypalServices {
   }
 
   orderApprovalLinks() {
-    final orderLinks = orderData?["links"];
+    final orderLinks = orderData?["links"] as List<Map<String, dynamic>>;
     var approvalUrl = '', executeUrl = '';
+    var data = orderLinks.map((item) => item.cast<String, dynamic>()).toList();
+    try {
+      final item = data.firstWhere((o) => o["rel"].toString() == "approve",
+          orElse: () => {});
+    } catch (e) {}
+    try {
+      final item =
+          orderLinks.firstWhere((o) => o["rel"] == "approve", orElse: () => {});
+    } catch (e) {}
     final item =
         orderLinks!.firstWhere((o) => o["rel"] == "approve", orElse: () => {});
     if (item.isNotEmpty) {

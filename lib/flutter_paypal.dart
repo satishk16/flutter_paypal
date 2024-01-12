@@ -18,7 +18,7 @@ class UsePaypal extends StatefulWidget {
   final String returnURL, cancelURL, note, clientId, secretKey;
   final List transactions;
   final bool sandboxMode;
-  final Map<String, dynamic>? orderData;
+  final Map? orderData;
   const UsePaypal({
     Key? key,
     required this.onSuccess,
