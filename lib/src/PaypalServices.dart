@@ -127,7 +127,7 @@ class PaypalServices {
       });
 
       final body = convert.jsonDecode(response.body);
-      if (response.statusCode == 200) {
+      if (response.statusCode == 200 || response.statusCode == 201) {
         return {'error': false, 'message': "Success", 'data': body};
       } else {
         return {
@@ -161,7 +161,7 @@ class PaypalServices {
           });
 
       final body = convert.jsonDecode(response.body);
-      if (response.statusCode == 200) {
+      if (response.statusCode == 200 || response.statusCode == 201) {
         return {'error': false, 'message': "Success", 'data': body};
       } else {
         return {
